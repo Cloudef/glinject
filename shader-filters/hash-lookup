@@ -1,0 +1,18 @@
+#!/bin/bash
+# Hash's shader content with sha256 and serves back contents of file with matching filename.
+# If there was no match creates a new file with shader content.
+
+tmp="$(mktemp)"
+trap 'rm "$tmp"' EXIT
+cat > "$tmp"
+
+hash="$(sha256sum < "$tmp" | awk '{print $1}')"
+path="${SHADER_PATH:-./shaders}/$hash"
+
+if [[ -f "$path" ]]; then
+   printf "reading shader: %s\n" "$path" 1>&2
+   cat "$path"
+else
+   printf "dumping shader: %s\n" "$path" 1>&2
+   tee "$path" < "$tmp"
+fi

@@ -1,0 +1,3 @@
+#!/bin/bash
+# Remove discards from shader which break .hack//G.U Last Recode under wine
+sed 's/^if.*discard;//'
