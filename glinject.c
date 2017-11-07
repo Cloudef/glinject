@@ -135,12 +135,17 @@ glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const 
          }
       }
 
+      static const size_t SHADER_MAX_SIZE = 4096 * 1024;
+      static __thread char *src;
+      if (!src && !(src = malloc(SHADER_MAX_SIZE)))
+         ERRX(EXIT_FAILURE, "no memory");
+
       close_fd(&proc.fds[0]);
-      char src[4096 * 10] = {0};
-      read(proc.fds[1], src, sizeof(src));
+      ssize_t ret = read(proc.fds[1], src, SHADER_MAX_SIZE);
+      ret = (ret < 0 ? 0 : ret);
       proc_close(&proc);
 
-      _glShaderSource(shader, 1, (const GLchar*[]){src}, NULL);
+      _glShaderSource(shader, 1, (const GLchar*[]){src}, (const GLint[]){ret});
    } else {
       _glShaderSource(shader, count, string, length);
    }
