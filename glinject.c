@@ -57,7 +57,7 @@ struct proc {
    int fds[2];
 };
 
-bool
+static bool
 proc_open(const char *bin, struct proc *out_proc)
 {
    assert(bin && out_proc);
@@ -85,7 +85,7 @@ proc_open(const char *bin, struct proc *out_proc)
    return false;
 }
 
-void
+static void
 proc_close(struct proc *proc)
 {
    assert(proc);
