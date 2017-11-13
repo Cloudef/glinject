@@ -95,6 +95,15 @@ proc_close(struct proc *proc)
    *proc = (struct proc){0};
 }
 
+static size_t
+safe_read(int fd, void *dst, const size_t dst_size)
+{
+   size_t off = 0;
+   ssize_t ret = 0;
+   for (; off < dst_size && (ret = read(fd, dst + off, dst_size - off)) > 0; off += ret);
+   return (ret < 0 ? 0 : off);
+}
+
 __eglMustCastToProperFunctionPointerType
 eglGetProcAddress(const char *procname)
 {
@@ -141,11 +150,11 @@ glShaderSource(GLuint shader, GLsizei count, const GLchar *const *string, const 
          ERRX(EXIT_FAILURE, "no memory");
 
       close_fd(&proc.fds[0]);
-      ssize_t ret = read(proc.fds[1], src, SHADER_MAX_SIZE);
-      ret = (ret < 0 ? 0 : ret);
+      const size_t src_size = safe_read(proc.fds[1], src, SHADER_MAX_SIZE);
       proc_close(&proc);
 
-      _glShaderSource(shader, 1, (const GLchar*[]){src}, (const GLint[]){ret});
+      // printf("--- source %zu bytes ---\n%.*s\n", (size_t)src_size, (int)src_size, src);
+      _glShaderSource(shader, 1, (const GLchar*[]){src}, (const GLint[]){src_size});
    } else {
       _glShaderSource(shader, count, string, length);
    }
